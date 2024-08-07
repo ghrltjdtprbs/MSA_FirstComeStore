@@ -1,12 +1,14 @@
 package com.firstcomestore.common.util;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.firstcomestore.common.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseDTO<T> {
 
     private final int code;
