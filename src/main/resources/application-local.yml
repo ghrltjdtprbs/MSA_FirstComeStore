@@ -13,6 +13,14 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  data:
+    redis:
+      host: ${LOCAL_REDIS_URL}
+      port: ${LOCAL_REDIS_PORT}
+  mail:
+    host: smtp.naver.com
+    username: ${MAIL_ID}
+    password: ${MAIL_PASSWORD}
 jwt:
   secret: ${JWT_SECRET}
   token-validity-in-seconds: 86400
