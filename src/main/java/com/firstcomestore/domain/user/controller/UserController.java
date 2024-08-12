@@ -29,10 +29,10 @@ public class UserController {
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
 
     @PostMapping
-    public ResponseEntity<ResponseDTO<Void>> signUp(
+    public ResponseEntity<ResponseDTO<Object>> signUp(
         @Valid @RequestBody CreateUserRequestDTO requestDTO) {
-        userService.signUp(requestDTO);
-        return ResponseEntity.ok(ResponseDTO.ok());
+        ResponseDTO<Object> response = userService.signUp(requestDTO);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping

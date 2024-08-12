@@ -61,4 +61,13 @@ public class User extends SoftDeletableBaseTimeEntity {
     public void delete(LocalDateTime currentTime) {
         super.delete(currentTime);
     }
+
+    @Override
+    public void restore() {
+        super.restore();
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }

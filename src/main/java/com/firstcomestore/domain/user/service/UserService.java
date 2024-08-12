@@ -1,5 +1,6 @@
 package com.firstcomestore.domain.user.service;
 
+import com.firstcomestore.common.dto.ResponseDTO;
 import com.firstcomestore.common.jwt.JwtProvider;
 import com.firstcomestore.domain.user.dto.request.CreateUserRequestDTO;
 import com.firstcomestore.domain.user.dto.request.TokenDTO;
@@ -24,12 +25,31 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    public void signUp(CreateUserRequestDTO requestDTO) {
-        validateDuplicateEmail(requestDTO.email());
+    public ResponseDTO<Object> signUp(CreateUserRequestDTO requestDTO) {
+        User existingUser = userRepository.findByEmail(requestDTO.email()).orElse(null);
+
+        if (existingUser != null) {
+            if (existingUser.isDeleted() && isWithinOneMonth(existingUser.getDeletedAt())) {
+                restoreUser(existingUser, requestDTO.password());
+                return ResponseDTO.okWithMessageAndData("계정이 복구되었습니다.", null);
+            } else if (!existingUser.isDeleted()) {
+                throw new DuplicatedEmailException();
+            }
+        }
 
         String encodedPassword = passwordEncoder.encode(requestDTO.password());
-        User user = createUser(requestDTO, encodedPassword);
+        User newUser = createUser(requestDTO, encodedPassword);
+        userRepository.save(newUser);
+        return null;
+    }
 
+    private boolean isWithinOneMonth(LocalDateTime deletedAt) {
+        return deletedAt != null && deletedAt.isAfter(LocalDateTime.now().minusMonths(1));
+    }
+
+    private void restoreUser(User user, String rawPassword) {
+        user.restore();
+        user.updatePassword(passwordEncoder.encode(rawPassword));
         userRepository.save(user);
     }
 
@@ -52,12 +72,6 @@ public class UserService {
             .orElseThrow(UserNotFoundException::new);
         validateNotDeleted(user);
         return user;
-    }
-
-    private void validateDuplicateEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new DuplicatedEmailException();
-        }
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {
