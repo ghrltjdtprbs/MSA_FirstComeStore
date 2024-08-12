@@ -1,4 +1,4 @@
-package com.firstcomestore.common.util;
+package com.firstcomestore.common.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
