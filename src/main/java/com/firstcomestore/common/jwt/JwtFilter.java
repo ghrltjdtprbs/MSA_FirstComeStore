@@ -1,64 +1,67 @@
 package com.firstcomestore.common.jwt;
 
-import com.firstcomestore.domain.user.entity.User;
-import com.firstcomestore.domain.user.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.filter.GenericFilterBean;
 
-@Slf4j(topic = "AuthFilter")
 @Component
-@Order(2)
-public class JwtFilter implements Filter {
+@Slf4j
+@RequiredArgsConstructor
+public class JwtFilter extends GenericFilterBean {
 
-    private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
+    private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
 
-    public JwtFilter(UserRepository userRepository, JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
-    }
+    private final JwtProvider jwtProvider;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    public void doFilter(
+        ServletRequest request, ServletResponse response, FilterChain chain
+    ) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        String url = httpServletRequest.getRequestURI();
+        String requestURI = httpServletRequest.getRequestURI();
 
-        if (StringUtils.hasText(url) &&
-            (url.startsWith("/user"))
-        ) {
+        String accessToken = resolveToken(httpServletRequest);
+        if (accessToken == null) {
             chain.doFilter(request, response);
+            return;
+        }
+
+        if (StringUtils.hasText(accessToken) && jwtProvider.validateToken(accessToken)) {
+            Authentication authentication = jwtProvider.getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info(
+                "Security Context에 'userId: {}' 인증 정보를 저장했습니다, uri: {}",
+                authentication.getName(), requestURI
+            );
         } else {
-            String tokenValue = jwtUtil.getTokenFromRequest(httpServletRequest);
+            log.info("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
+        }
 
-            if (StringUtils.hasText(tokenValue)) {
-                String token = jwtUtil.substringToken(tokenValue);
+        chain.doFilter(request, response);
+    }
 
-                if (!jwtUtil.validateToken(token)) {
-                    throw new IllegalArgumentException("Token Error");
-                }
+    private String resolveToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
 
-                Claims info = jwtUtil.getUserInfoFromToken(token);
-
-                User user = userRepository.findByEmail(info.getSubject()).orElseThrow(() ->
-                    new NullPointerException("존재하지 않는 회원입니다.")
-                );
-
-                request.setAttribute("user", user);
-                chain.doFilter(request, response);
-            } else {
-                throw new IllegalArgumentException("Not Found Token");
+        for (Cookie cookie : cookies) {
+            if (ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                return cookie.getValue();
             }
         }
+        return null;
     }
 }

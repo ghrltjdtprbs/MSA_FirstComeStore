@@ -11,13 +11,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 @Slf4j
-@Component
-@Order(1)
 public class LoggingFilter implements Filter {
 
     @Override

@@ -14,5 +14,8 @@ spring:
       ddl-auto: update
     open-in-view: false
 jwt:
-  secret:
-    key: "${JWT_SECRET_KEY}"
+  secret: ${JWT_SECRET}
+  token-validity-in-seconds: 86400
+
+cookie:
+  domain: ${COOKIE_DOMAIN}

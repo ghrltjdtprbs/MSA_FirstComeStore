@@ -1,50 +1,94 @@
 package com.firstcomestore.common.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstcomestore.common.dto.ResponseDTO;
+import com.firstcomestore.common.jwt.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
-@Configuration
 @EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private static final String[] ALLOWED_PATHS
+        = {
+        "/user/**",
+    };
+
+    private final JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // CSRF 설정
-        http.csrf((csrf) -> csrf.disable());
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(sessionManagement -> sessionManagement
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+        ;
 
-        http.authorizeHttpRequests((authorizeHttpRequests) ->
-            authorizeHttpRequests
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-                .permitAll()
-                .requestMatchers("/user/**").permitAll()
-                .anyRequest().authenticated()
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+            .accessDeniedHandler(
+                (request, response, accessDeniedException) -> {
+                    ResponseDTO<Void> responseDTO = ResponseDTO.errorWithMessage(
+                        HttpStatus.FORBIDDEN, "Access Denied");
+                    sendResponse(response, responseDTO);
+                }
+            )
+            .authenticationEntryPoint(
+                (request, response, accessDeniedException) -> {
+                    ResponseDTO<Void> responseDTO = ResponseDTO.errorWithMessage(
+                        HttpStatus.UNAUTHORIZED,
+                        "Unauthorized: 1. 비로그인 상태로 로그인이 필요한 API에 접근했거나 2. 없는 API URI에 요청을 보내고 있습니다");
+                    sendResponse(response, responseDTO);
+                }
+            )
         );
 
-        // 로그인 사용
-        http.formLogin(Customizer.withDefaults());
+        http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+            .requestMatchers(
+                Arrays.stream(ALLOWED_PATHS)
+                    .map(AntPathRequestMatcher::new)
+                    .toArray(RequestMatcher[]::new)
+            ).permitAll()
+            .requestMatchers(
+                new AntPathRequestMatcher("/user", HttpMethod.POST.name())
+            ).permitAll()
+            .anyRequest().authenticated()
+        );
 
-        // 예외 처리 설정
-        http.exceptionHandling()
-            .authenticationEntryPoint((request, response, authException) -> {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write("{\"code\": \"401\", \"message\": \"인증이 필요합니다.\"}");
-            });
+        http.addFilterBefore(
+            jwtFilter,
+            UsernamePasswordAuthenticationFilter.class
+        );
 
         return http.build();
+    }
+
+    private void sendResponse(HttpServletResponse response, ResponseDTO<Void> responseDTO)
+        throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(responseDTO.getCode());
+        PrintWriter out = response.getWriter();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        out.print(objectMapper.writeValueAsString(responseDTO));
+        out.flush();
     }
 }
