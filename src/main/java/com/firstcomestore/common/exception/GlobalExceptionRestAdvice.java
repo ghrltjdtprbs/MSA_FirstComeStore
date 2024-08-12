@@ -1,6 +1,6 @@
 package com.firstcomestore.common.exception;
 
-import com.firstcomestore.common.util.ResponseDTO;
+import com.firstcomestore.common.dto.ResponseDTO;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
