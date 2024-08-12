@@ -1,6 +1,5 @@
 package com.firstcomestore.domain.user.service;
 
-import com.firstcomestore.common.dto.ResponseDTO;
 import com.firstcomestore.common.jwt.JwtProvider;
 import com.firstcomestore.domain.user.dto.request.CreateUserRequestDTO;
 import com.firstcomestore.domain.user.dto.request.TokenDTO;
@@ -25,14 +24,50 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    public ResponseDTO<Void> signUp(CreateUserRequestDTO requestDTO) {
-        if (userRepository.existsByEmail(requestDTO.email())) {
-            throw new DuplicatedEmailException();
-        }
+    public void signUp(CreateUserRequestDTO requestDTO) {
+        validateDuplicateEmail(requestDTO.email());
 
         String encodedPassword = passwordEncoder.encode(requestDTO.password());
+        User user = createUser(requestDTO, encodedPassword);
 
-        User user = User.builder()
+        userRepository.save(user);
+    }
+
+    public TokenDTO login(String email, String password) {
+        User user = findByEmail(email);
+        validatePassword(password, user.getPassword());
+        String accessToken = jwtProvider.createToken(user);
+        return new TokenDTO(accessToken);
+    }
+
+    public void deleteUser(Long userId) {
+        User user = findById(userId);
+        markUserAsDeleted(user);
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(UserNotFoundException::new);
+        validateNotDeleted(user);
+        return user;
+    }
+
+    private void validateDuplicateEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicatedEmailException();
+        }
+    }
+
+    private void validatePassword(String rawPassword, String encodedPassword) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            throw new InvalidLoginException();
+        }
+    }
+
+    private User createUser(CreateUserRequestDTO requestDTO, String encodedPassword) {
+        return User.builder()
             .email(requestDTO.email())
             .password(encodedPassword)
             .name(requestDTO.name())
@@ -40,42 +75,20 @@ public class UserService {
             .address(requestDTO.address())
             .userRole(UserRole.USER)
             .build();
-
-        userRepository.save(user);
-
-        return ResponseDTO.ok();
     }
 
-
-    public TokenDTO login(User user, String password) {
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new InvalidLoginException();
-        }
-        String accessToken = jwtProvider.createToken(user);
-        return new TokenDTO(accessToken);
-    }
-
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException());
-        user.delete(LocalDateTime.now());
-        userRepository.save(user);
-    }
-
-
-    @Transactional(readOnly = true)
-    public User findByEmail(String email) {
-        User user = userRepository.findByEmail(email)
+    private User findById(Long userId) {
+        return userRepository.findById(userId)
             .orElseThrow(UserNotFoundException::new);
-        isDeletedUser(user);
-        return user;
     }
 
-    private static void isDeletedUser(User user) {
+    private void markUserAsDeleted(User user) {
+        user.delete(LocalDateTime.now());
+    }
+
+    private void validateNotDeleted(User user) {
         if (user.isDeleted()) {
             throw new UserNotFoundException();
         }
     }
-
-
 }
