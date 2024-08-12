@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionRestAdvice {
 
     @ExceptionHandler
-    public ResponseEntity<ResponseDTO<Void>> applicationException(ApplicationException e) {
+    public ResponseEntity<ResponseDTO<?>> applicationException(ApplicationException e) {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(e.getErrorCode().getHttpStatus())
@@ -37,7 +37,7 @@ public class GlobalExceptionRestAdvice {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(ResponseDTO.errorWithMessage(HttpStatus.BAD_REQUEST, e.getMessage()));
+            .body(ResponseDTO.errorWithMessageAndData(HttpStatus.BAD_REQUEST, e.getMessage(),null));
     }
 
     @ExceptionHandler
@@ -55,7 +55,7 @@ public class GlobalExceptionRestAdvice {
                     fieldError.getRejectedValue()
                 )
             ).collect(Collectors.joining(", "));
-        return ResponseDTO.errorWithMessage(HttpStatus.BAD_REQUEST, response);
+        return ResponseDTO.errorWithMessageAndData(HttpStatus.BAD_REQUEST, response,null);
     }
 
     private List<FieldError> getSortedFieldErrors(BindingResult bindingResult) {
@@ -75,7 +75,7 @@ public class GlobalExceptionRestAdvice {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ResponseDTO.errorWithMessage(HttpStatus.INTERNAL_SERVER_ERROR, "디비 에러!"));
+            .body(ResponseDTO.errorWithMessageAndData(HttpStatus.INTERNAL_SERVER_ERROR, "디비 에러!",null));
     }
 
     @ExceptionHandler
@@ -83,6 +83,6 @@ public class GlobalExceptionRestAdvice {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ResponseDTO.errorWithMessage(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러!"));
+            .body(ResponseDTO.errorWithMessageAndData(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러!",null));
     }
 }
