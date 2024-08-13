@@ -1,4 +1,4 @@
-package com.firstcomestore.domain.wish.entity;
+package com.firstcomestore.domain.wishlist.entity;
 
 import com.firstcomestore.domain.product.entity.Option;
 import com.firstcomestore.domain.user.entity.User;
@@ -19,10 +19,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Builder
-@Table(name = "wish")
+@Table(name = "wishlist")
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Wish {
+public class WishList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
