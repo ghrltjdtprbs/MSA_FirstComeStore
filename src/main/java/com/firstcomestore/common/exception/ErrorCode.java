@@ -16,6 +16,9 @@ public enum ErrorCode {
     INVALID_LOGIN(HttpStatus.BAD_REQUEST, "잘못된 이메일 또는 비밀번호입니다."),
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 회원입니다."),
 
+    // PRODUCT
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 상품입니다."),
+
     // 5xx
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 에러");
 
