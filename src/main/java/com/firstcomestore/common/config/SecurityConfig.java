@@ -29,7 +29,7 @@ public class SecurityConfig {
 
     private static final String[] ALLOWED_PATHS
         = {
-        "/user/**","/admin"
+        "/user/**","/admin","/products/**",
     };
 
     private final JwtFilter jwtFilter;

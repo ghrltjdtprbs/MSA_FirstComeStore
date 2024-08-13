@@ -2,8 +2,11 @@ package com.firstcomestore.domain.product.service;
 
 import com.firstcomestore.domain.product.dto.request.CreateOptionRequestDTO;
 import com.firstcomestore.domain.product.dto.request.CreateProductRequestDTO;
+import com.firstcomestore.domain.product.dto.response.OptionDetailResponseDTO;
 import com.firstcomestore.domain.product.dto.response.OptionResponseDTO;
+import com.firstcomestore.domain.product.dto.response.ProductDetailResponseDTO;
 import com.firstcomestore.domain.product.dto.response.ProductImageResponseDTO;
+import com.firstcomestore.domain.product.dto.response.ProductListResponseDTO;
 import com.firstcomestore.domain.product.dto.response.ProductResponseDTO;
 import com.firstcomestore.domain.product.entity.Inventory;
 import com.firstcomestore.domain.product.entity.Option;
@@ -98,5 +101,46 @@ public class ProductService {
             .option(option)
             .build();
         return inventoryRepository.save(inventory);
+    }
+
+    public List<ProductListResponseDTO> getProductList() {
+        return productRepository.findAll().stream()
+            .map(product -> ProductListResponseDTO.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getPrice())
+                .titleImage(product.getTitleImage())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    public ProductDetailResponseDTO getProductDetail(Long productId) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ProductNotFoundException());
+
+        List<ProductImageResponseDTO> imageResponses = product.getProductImages().stream()
+            .map(image -> ProductImageResponseDTO.builder()
+                .id(image.getId())
+                .url(image.getUrl())
+                .build())
+            .collect(Collectors.toList());
+
+        List<OptionDetailResponseDTO> optionResponses = product.getOptions().stream()
+            .map(option -> OptionDetailResponseDTO.builder()
+                .id(option.getId())
+                .type(option.getType())
+                .availability(option.isAvailability())
+                .stock(option.getInventory().getStock())
+                .build())
+            .collect(Collectors.toList());
+
+        return ProductDetailResponseDTO.builder()
+            .id(product.getId())
+            .name(product.getName())
+            .description(product.getDescription())
+            .titleImage(product.getTitleImage())
+            .productImages(imageResponses)
+            .options(optionResponses)
+            .build();
     }
 }
