@@ -19,6 +19,9 @@ public enum ErrorCode {
     // PRODUCT
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 상품입니다."),
 
+    // WISH
+    WISH_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 wish 입니다."),
+
     // 5xx
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 에러");
 
