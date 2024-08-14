@@ -15,6 +15,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -69,5 +70,13 @@ public class User extends SoftDeletableBaseTimeEntity {
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public void updateUserDetails(Optional<String> name, Optional<String> phone,
+        Optional<String> email, Optional<String> address) {
+        name.ifPresent(n -> this.name = n);
+        phone.ifPresent(p -> this.phone = p);
+        email.ifPresent(e -> this.email = e);
+        address.ifPresent(a -> this.address = a);
     }
 }

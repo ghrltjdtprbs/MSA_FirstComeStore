@@ -38,4 +38,12 @@ public class AESUtil {
         byte[] originalData = cipher.doFinal(decodedData);
         return new String(originalData, StandardCharsets.UTF_8);
     }
+
+    public static String encryptSafely(String data) {
+        try {
+            return encrypt(data);
+        } catch (Exception e) {
+            throw new RuntimeException("Encryption error", e);
+        }
+    }
 }
