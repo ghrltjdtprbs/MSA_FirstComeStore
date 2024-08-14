@@ -8,6 +8,7 @@ public enum OrderStatus {
     ORDER_COMPLETE,
     ON_DELIVERY,
     DELIVERY_COMPLETE,
+    CANCEL,
     ON_RETURN,
     RETURN_COMPLETE
 }

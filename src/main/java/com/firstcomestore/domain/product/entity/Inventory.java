@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -28,10 +29,20 @@ public class Inventory extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
+    @Setter
     private int stock;
 
     @OneToOne
     @JoinColumn(name = "option_id", nullable = false)
     private Option option;
 
+    public void setStock(int stock) {
+        this.stock = stock;
+
+        if (stock <= 0) {
+            this.option.setAvailability(false);
+        } else {
+            this.option.setAvailability(true);
+        }
+    }
 }

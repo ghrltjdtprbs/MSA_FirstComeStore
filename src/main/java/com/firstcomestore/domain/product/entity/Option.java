@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -36,6 +37,7 @@ public class Option extends SoftDeletableBaseTimeEntity {
     private String type;
 
     @Column
+    @Setter
     private boolean availability;
 
     @ManyToOne

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -49,5 +50,18 @@ public class Order extends SoftDeletableBaseTimeEntity {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderOption> orderOptions;
+
+    public void setOrderOptions(List<OrderOption> orderOptions) {
+        this.orderOptions = orderOptions;
+    }
+
+    public void setOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
+    @Override
+    public void delete(LocalDateTime currentTime) {
+        super.delete(currentTime);
+    }
 
 }
