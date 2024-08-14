@@ -20,7 +20,7 @@ public class AdminController {
 
     @PostMapping
     public ResponseEntity<ResponseDTO<Void>> signUpAdmin(
-        @Valid @RequestBody LoginRequestDTO requestDTO) {
+        @Valid @RequestBody LoginRequestDTO requestDTO) throws Exception {
         ResponseDTO<Void> response = adminService.signUpAdmin(requestDTO);
         return ResponseEntity.ok(response);
     }
