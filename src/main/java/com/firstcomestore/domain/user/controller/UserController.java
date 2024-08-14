@@ -30,7 +30,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<ResponseDTO<Object>> signUp(
-        @Valid @RequestBody CreateUserRequestDTO requestDTO) {
+        @Valid @RequestBody CreateUserRequestDTO requestDTO) throws Exception {
         ResponseDTO<Object> response = userService.signUp(requestDTO);
         return ResponseEntity.ok(response);
     }
@@ -46,9 +46,8 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDTO<Void>> login(
-        @RequestBody @Valid LoginRequestDTO loginRequest,
-        HttpServletResponse response
-    ) {
+        @RequestBody @Valid LoginRequestDTO loginRequest, HttpServletResponse response)
+        throws Exception {
         TokenDTO tokenDTO = userService.login(loginRequest.email(), loginRequest.password());
         addAccessTokenToCookie(response, tokenDTO.accessToken());
 

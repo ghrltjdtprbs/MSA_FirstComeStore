@@ -2,6 +2,7 @@ package com.firstcomestore.domain.user.service;
 
 import com.firstcomestore.common.dto.ResponseDTO;
 import com.firstcomestore.common.jwt.JwtProvider;
+import com.firstcomestore.common.util.AESUtil;
 import com.firstcomestore.domain.user.dto.request.CreateUserRequestDTO;
 import com.firstcomestore.domain.user.dto.request.TokenDTO;
 import com.firstcomestore.domain.user.entity.User;
@@ -25,8 +26,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    public ResponseDTO<Object> signUp(CreateUserRequestDTO requestDTO) {
-        User existingUser = userRepository.findByEmail(requestDTO.email()).orElse(null);
+    public ResponseDTO<Object> signUp(CreateUserRequestDTO requestDTO) throws Exception {
+
+        String encryptedEmail = AESUtil.encrypt(requestDTO.email());
+        User existingUser = userRepository.findByEmail(encryptedEmail).orElse(null);
 
         if (existingUser != null) {
             if (existingUser.isDeleted() && isWithinOneMonth(existingUser.getDeletedAt())) {
@@ -40,7 +43,20 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(requestDTO.password());
         User newUser = createUser(requestDTO, encodedPassword);
         userRepository.save(newUser);
-        return null;
+
+        return ResponseDTO.okWithMessageAndData("회원가입이 완료되었습니다.", null);
+    }
+
+    private User createUser(CreateUserRequestDTO requestDTO, String encodedPassword)
+        throws Exception {
+        return User.builder()
+            .email(AESUtil.encrypt(requestDTO.email()))
+            .password(encodedPassword)
+            .name(AESUtil.encrypt(requestDTO.name()))
+            .phone(AESUtil.encrypt(requestDTO.phone()))
+            .address(AESUtil.encrypt(requestDTO.address()))
+            .userRole(UserRole.USER)
+            .build();
     }
 
     private boolean isWithinOneMonth(LocalDateTime deletedAt) {
@@ -53,8 +69,9 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public TokenDTO login(String email, String password) {
-        User user = findByEmail(email);
+    public TokenDTO login(String email, String password) throws Exception {
+        String encryptedEmail = AESUtil.encrypt(email);
+        User user = findByEmail(encryptedEmail);
         validatePassword(password, user.getPassword());
         String accessToken = jwtProvider.createToken(user);
         return new TokenDTO(accessToken);
@@ -67,28 +84,15 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User findByEmail(String email) {
-        User user = userRepository.findByEmail(email)
+    public User findByEmail(String encryptedEmail) {
+        return userRepository.findByEmail(encryptedEmail)
             .orElseThrow(UserNotFoundException::new);
-        validateNotDeleted(user);
-        return user;
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new InvalidLoginException();
         }
-    }
-
-    private User createUser(CreateUserRequestDTO requestDTO, String encodedPassword) {
-        return User.builder()
-            .email(requestDTO.email())
-            .password(encodedPassword)
-            .name(requestDTO.name())
-            .phone(requestDTO.phone())
-            .address(requestDTO.address())
-            .userRole(UserRole.USER)
-            .build();
     }
 
     private User findById(Long userId) {
@@ -98,11 +102,5 @@ public class UserService {
 
     private void markUserAsDeleted(User user) {
         user.delete(LocalDateTime.now());
-    }
-
-    private void validateNotDeleted(User user) {
-        if (user.isDeleted()) {
-            throw new UserNotFoundException();
-        }
     }
 }
