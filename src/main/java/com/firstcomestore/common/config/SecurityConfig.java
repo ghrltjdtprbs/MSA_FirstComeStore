@@ -29,7 +29,7 @@ public class SecurityConfig {
 
     private static final String[] ALLOWED_PATHS
         = {
-        "/user/**","/admin","/products/**",
+        "/users/**","/admin","/products/**",
     };
 
     private final JwtFilter jwtFilter;
@@ -68,7 +68,7 @@ public class SecurityConfig {
                     .toArray(RequestMatcher[]::new)
             ).permitAll()
             .requestMatchers(
-                new AntPathRequestMatcher("/user", HttpMethod.POST.name())
+                new AntPathRequestMatcher("/users", HttpMethod.POST.name())
             ).permitAll()
             .requestMatchers(
                 new AntPathRequestMatcher("/admin/**")
