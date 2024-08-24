@@ -26,7 +26,7 @@ public class WishListController {
 
     private final WishListService wishService;
 
-    @PostMapping("/{optionId}")
+    @PostMapping("/options/{optionId}")
     public ResponseEntity<ResponseDTO<Void>> addToWishList(
         @PathVariable Long optionId,
         @Valid @RequestBody AddWishListRequestDTO requestDTO) {
