@@ -49,7 +49,7 @@ public class OrderController {
         return ResponseEntity.ok(ResponseDTO.ok());
     }
 
-    @PostMapping("/{orderId}/retrun")
+    @PostMapping("/{orderId}/return")
     public ResponseEntity<ResponseDTO<Void>> returnOrder(@PathVariable Long orderId) {
         orderService.returnOrder(orderId);
         return ResponseEntity.ok(ResponseDTO.ok());
