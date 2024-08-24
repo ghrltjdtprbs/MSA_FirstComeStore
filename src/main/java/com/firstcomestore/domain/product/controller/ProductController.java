@@ -31,7 +31,7 @@ public class ProductController {
         return ResponseEntity.ok(ResponseDTO.okWithData(response));
     }
 
-    @PostMapping("/admin/options/{productId}")
+    @PostMapping("/admin/products/{productId}/options")
     public ResponseEntity<ResponseDTO<OptionResponseDTO>> createOption(@PathVariable Long productId,
         @Valid @RequestBody CreateOptionRequestDTO requestDTO) {
         OptionResponseDTO response = productService.createOption(productId, requestDTO);
