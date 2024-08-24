@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,13 +44,13 @@ public class OrderController {
         return ResponseEntity.ok(ResponseDTO.okWithData(response));
     }
 
-    @PostMapping("/{orderId}/cancel")
+    @PutMapping("/{orderId}/cancel")
     public ResponseEntity<ResponseDTO<Void>> cancelOrder(@PathVariable Long orderId) {
         orderService.cancelOrder(orderId);
         return ResponseEntity.ok(ResponseDTO.ok());
     }
 
-    @PostMapping("/{orderId}/return")
+    @PutMapping("/{orderId}/return")
     public ResponseEntity<ResponseDTO<Void>> returnOrder(@PathVariable Long orderId) {
         orderService.returnOrder(orderId);
         return ResponseEntity.ok(ResponseDTO.ok());
