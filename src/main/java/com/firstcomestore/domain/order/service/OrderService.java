@@ -1,8 +1,10 @@
 package com.firstcomestore.domain.order.service;
 
 import com.firstcomestore.common.exception.ErrorCode;
+import com.firstcomestore.common.feignclient.ProductServiceClient;
 import com.firstcomestore.domain.order.entity.Order;
 import com.firstcomestore.domain.order.entity.OrderStatus;
+import com.firstcomestore.domain.order.exception.InsufficientStockException;
 import com.firstcomestore.domain.order.exception.OrderNotFoundException;
 import com.firstcomestore.domain.order.exception.StatusChangeException;
 import com.firstcomestore.domain.order.repository.OrderRepository;
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +26,20 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final WishListRepository wishListRepository;
+    private final ProductServiceClient productServiceClient;
 
-    public Order createOrder(Long userId, Long wishlistId, String deliveryAddress, String deliveryContact) {
+    public Order createOrder(Long userId, Long wishlistId, String deliveryAddress,
+        String deliveryContact) {
         WishList wish = getWishList(userId, wishlistId);
 
-        // 예시로, 재고 관리와 관련된 처리를 제거했습니다.
-        // 실제 구현에서는 다른 서비스로부터 재고 정보를 받아오거나, 트랜잭션 없이 처리할 수 있습니다.
+        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
+            wish.getOptionId());
+        int availableStock = stockResponse.getBody();
+        if (availableStock < wish.getQuantity()) {
+            throw new InsufficientStockException();
+        }
+
+        productServiceClient.updateOptionStock(wish.getOptionId(), -wish.getQuantity());
 
         Order order = Order.builder()
             .userId(userId)
@@ -54,7 +65,8 @@ public class OrderService {
                 "주문 ID " + orderId + "은 현재 상태에서 취소할 수 없습니다.");
         }
 
-        // 재고 복구 로직 제거
+        productServiceClient.updateOptionStock(order.getOptionId(), order.getQuantity());
+
         updateOrderStatusAndDelete(order, OrderStatus.CANCEL);
     }
 
@@ -73,8 +85,7 @@ public class OrderService {
                 "주문 ID " + order.getId() + "은 현재 상태에서 반품할 수 없습니다.");
         }
 
-        int returnPeriod = 1;
-        if (LocalDate.now().isAfter(order.getUpdatedAt().plusDays(returnPeriod).toLocalDate())) {
+        if (LocalDate.now().isAfter(order.getUpdatedAt().plusDays(1).toLocalDate())) {
             throw new StatusChangeException(ErrorCode.RETURN_NOT_ALLOWED,
                 "주문 ID " + order.getId() + "의 반품 가능 기간이 만료되었습니다.");
         }
