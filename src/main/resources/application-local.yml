@@ -1,12 +1,13 @@
 spring:
   config:
+    import: optional:file:.env[.properties]
     activate:
       on-profile: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/order-service
-    username: root
-    password: dnwnrlfls12
+    url: jdbc:mysql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_DATABASE}
+    username: ${LOCAL_DB_ROOT_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
   jpa:
     show-sql: true
     hibernate:
@@ -19,8 +20,7 @@ server:
   port: 8083
 
 jwt:
-  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
-  token-validity-in-seconds: 86400
+  secret: ${JWT_SECRET}
 
 eureka:
   client:
