@@ -64,12 +64,12 @@ public class WishListService {
         return WishListResponseDTO.builder()
             .id(wish.getId())
             .quantity(wish.getQuantity())
-            .optionId(optionDetails.getOptionId())
-            .optionType(optionDetails.getOptionType())
-            .availability(optionDetails.isAvailability())
-            .stock(optionDetails.getStock())
-            .productId(optionDetails.getProductId())
-            .productName(optionDetails.getProductName())
+            .optionId(optionDetails.optionId())
+            .optionType(optionDetails.optionType())
+            .availability(optionDetails.availability())
+            .stock(optionDetails.stock())
+            .productId(optionDetails.productId())
+            .productName(optionDetails.productName())
             .build();
     }
 
