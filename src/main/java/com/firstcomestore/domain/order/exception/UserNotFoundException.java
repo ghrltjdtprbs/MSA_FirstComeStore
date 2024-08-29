@@ -1,4 +1,4 @@
-package com.firstcomestore.domain.user.exception;
+package com.firstcomestore.domain.order.exception;
 
 import com.firstcomestore.common.exception.ApplicationException;
 import com.firstcomestore.common.exception.ErrorCode;

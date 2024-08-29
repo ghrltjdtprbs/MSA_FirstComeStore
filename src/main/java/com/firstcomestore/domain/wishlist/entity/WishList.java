@@ -1,14 +1,10 @@
 package com.firstcomestore.domain.wishlist.entity;
 
-import com.firstcomestore.domain.product.entity.Option;
-import com.firstcomestore.domain.user.entity.User;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,14 +25,12 @@ public class WishList {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "option_id", nullable = false)
+    private Long optionId;
+
     @Setter
     private int quantity;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @OneToOne
-    @JoinColumn(name = "option_id", nullable = false)
-    private Option option;
 }

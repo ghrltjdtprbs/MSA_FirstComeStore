@@ -1,29 +1,30 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
     activate:
       on-profile: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_DATABASE}
-    username: ${LOCAL_DB_ROOT_USERNAME}
-    password: ${LOCAL_DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/order-service
+    username: root
+    password: dnwnrlfls12
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
     open-in-view: false
-  data:
-    redis:
-      host: ${LOCAL_REDIS_URL}
-      port: ${LOCAL_REDIS_PORT}
-  mail:
-    host: smtp.naver.com
-    username: ${MAIL_ID}
-    password: ${MAIL_PASSWORD}
+  application:
+    name: order-service
+
+server:
+  port: 8083
+
 jwt:
-  secret: ${JWT_SECRET}
+  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
   token-validity-in-seconds: 86400
 
-cookie:
-  domain: ${COOKIE_DOMAIN}
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka

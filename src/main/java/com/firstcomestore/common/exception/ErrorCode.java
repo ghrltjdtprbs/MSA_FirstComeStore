@@ -19,11 +19,14 @@ public enum ErrorCode {
     // PRODUCT
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 상품입니다."),
 
+
     // ORDER
     INSUFFICIENT_STOCKE(HttpStatus.CONFLICT,"재고가 부족합니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 주문입니다."),
     CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST,"주문 취소는 아직 발송되지 않은 주문에 대해서만 가능합니다."),
     RETURN_NOT_ALLOWED(HttpStatus.BAD_REQUEST,"반품 가능 기간이 아닙니다.(배송 완료 후 1일 이내에 가능)"),
+    INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST,"재고가 부족합니다."),
+    OPTION_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 옵션입니다."),
 
     // WISH
     WISH_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 wish 입니다."),

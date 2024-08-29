@@ -1,19 +1,18 @@
 package com.firstcomestore.domain.wishlist.service;
 
-import com.firstcomestore.domain.product.entity.Option;
-import com.firstcomestore.domain.product.exception.ProductNotFoundException;
-import com.firstcomestore.domain.product.repository.OptionRepository;
-import com.firstcomestore.domain.user.entity.User;
-import com.firstcomestore.domain.user.exception.UserNotFoundException;
-import com.firstcomestore.domain.user.repository.UserRepository;
+import com.firstcomestore.common.feignclient.ProductServiceClient;
+import com.firstcomestore.domain.order.exception.InsufficientStockException;
 import com.firstcomestore.domain.wishlist.dto.request.AddWishListRequestDTO;
+import com.firstcomestore.domain.wishlist.dto.response.OptionDetailDTO;
 import com.firstcomestore.domain.wishlist.dto.response.WishListResponseDTO;
 import com.firstcomestore.domain.wishlist.entity.WishList;
+import com.firstcomestore.domain.wishlist.exception.OptionNotFoundException;
 import com.firstcomestore.domain.wishlist.exception.WishNotFoundException;
 import com.firstcomestore.domain.wishlist.repository.WishListRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +22,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class WishListService {
 
     private final WishListRepository wishRepository;
-    private final OptionRepository optionRepository;
-    private final UserRepository userRepository;
+    private final ProductServiceClient productServiceClient;
 
     public void addToWishList(Long userId, Long optionId, AddWishListRequestDTO requestDTO) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException());
+        ResponseEntity<Boolean> response = productServiceClient.checkOptionExists(optionId);
+        if (!response.getBody()) {
+            throw new OptionNotFoundException();
+        }
 
-        Option option = optionRepository.findById(optionId)
-            .orElseThrow(() -> new ProductNotFoundException());
+        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(optionId);
+        int availableStock = stockResponse.getBody();
+        if (availableStock < requestDTO.quantity()) {
+            throw new InsufficientStockException();
+        }
 
         WishList existingWish = wishRepository.findByUserIdAndOptionId(userId, optionId);
         if (existingWish != null) {
@@ -39,8 +42,8 @@ public class WishListService {
             wishRepository.save(existingWish);
         } else {
             WishList wish = WishList.builder()
-                .user(user)
-                .option(option)
+                .userId(userId)
+                .optionId(optionId)
                 .quantity(requestDTO.quantity())
                 .build();
             wishRepository.save(wish);
@@ -49,17 +52,25 @@ public class WishListService {
 
     public List<WishListResponseDTO> getWishList(Long userId) {
         return wishRepository.findByUserId(userId).stream()
-            .map(wish -> WishListResponseDTO.builder()
-                .id(wish.getId())
-                .quantity(wish.getQuantity())
-                .optionId(wish.getOption().getId())
-                .optionType(wish.getOption().getType())
-                .availability(wish.getOption().isAvailability())
-                .stock(wish.getOption().getInventory().getStock())
-                .productId(wish.getOption().getProduct().getId())
-                .productName(wish.getOption().getProduct().getName())
-                .build())
+            .map(this::toWishListResponseDTO)
             .collect(Collectors.toList());
+    }
+
+    private WishListResponseDTO toWishListResponseDTO(WishList wish) {
+        ResponseEntity<OptionDetailDTO> response = productServiceClient.getOptionDetails(
+            wish.getOptionId());
+        OptionDetailDTO optionDetails = response.getBody();
+
+        return WishListResponseDTO.builder()
+            .id(wish.getId())
+            .quantity(wish.getQuantity())
+            .optionId(optionDetails.getOptionId())
+            .optionType(optionDetails.getOptionType())
+            .availability(optionDetails.isAvailability())
+            .stock(optionDetails.getStock())
+            .productId(optionDetails.getProductId())
+            .productName(optionDetails.getProductName())
+            .build();
     }
 
     public void removeFromWishList(Long userId, Long wishId) {
@@ -72,6 +83,13 @@ public class WishListService {
     public void updateWishQuantity(Long userId, Long wishId, AddWishListRequestDTO requestDTO) {
         WishList wish = wishRepository.findByIdAndUserId(wishId, userId)
             .orElseThrow(() -> new WishNotFoundException());
+
+        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
+            wish.getOptionId());
+        int availableStock = stockResponse.getBody();
+        if (availableStock < requestDTO.quantity()) {
+            throw new InsufficientStockException();
+        }
 
         wish.setQuantity(requestDTO.quantity());
         wishRepository.save(wish);
