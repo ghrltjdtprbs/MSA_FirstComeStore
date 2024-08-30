@@ -1,0 +1,50 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_DATABASE}
+    username: ${LOCAL_DB_ROOT_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  data:
+    redis:
+      host: ${LOCAL_REDIS_URL}
+      port: ${LOCAL_REDIS_PORT}
+  mail:
+    host: smtp.naver.com
+    username: ${MAIL_ID}
+    password: ${MAIL_PASSWORD}
+  application:
+    name: user-service
+
+jwt:
+  secret: ${JWT_SECRET}
+  token-validity-in-seconds: 86400
+
+AES_SECRET_KEY: ${AES_SECRET_KEY}
+
+cookie:
+  domain: ${COOKIE_DOMAIN}
+
+server:
+  port: 8081
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans
