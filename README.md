@@ -8,4 +8,4 @@ MSA _ E-commerce 서비스 구현
 - discovery-service : discovery service
 - user-service : user micro service
 - product-service : product micro service
-- order-service : order micro service
+- order-service : order micro service - 선착순
