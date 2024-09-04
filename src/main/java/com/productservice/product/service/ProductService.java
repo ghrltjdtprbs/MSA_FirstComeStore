@@ -145,16 +145,30 @@ public class ProductService {
             .build();
     }
 
+    public void updateMaxPurchaseLimit(Long optionId, Integer maxPurchaseLimit) {
+        Option option = optionRepository.findById(optionId)
+            .orElseThrow(() -> new OptionNotFoundException());
+
+        option.setMaxPurchaseLimit(maxPurchaseLimit);
+        optionRepository.save(option);
+    }
+
+    public Integer getMaxPurchaseLimit(Long optionId) {
+        Option option = optionRepository.findById(optionId)
+            .orElseThrow(() -> new OptionNotFoundException());
+
+        return option.getMaxPurchaseLimit();
+    }
+
     // product to order
     public void updateStock(Long optionId, int additionalStock) {
-        // Option을 가져와서 Inventory의 재고를 업데이트
         Option option = optionRepository.findById(optionId)
             .orElseThrow(() -> new OptionNotFoundException());
 
         Inventory inventory = option.getInventory();
         int currentStock = inventory.getStock();
-        int newStock = currentStock + additionalStock;  // 현재 재고에 추가 재고를 더함
+        int newStock = currentStock + additionalStock;
 
-        inventory.setStock(newStock);  // 재고 업데이트 및 옵션의 availability 상태가 변경됨
+        inventory.setStock(newStock);
     }
 }

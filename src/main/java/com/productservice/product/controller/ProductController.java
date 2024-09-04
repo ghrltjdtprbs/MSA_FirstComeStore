@@ -3,6 +3,7 @@ package com.productservice.product.controller;
 import com.productservice.common.dto.ResponseDTO;
 import com.productservice.product.dto.request.CreateOptionRequestDTO;
 import com.productservice.product.dto.request.CreateProductRequestDTO;
+import com.productservice.product.dto.request.UpdateMaxPurchaseLimitRequestDTO;
 import com.productservice.product.dto.response.OptionDetailDTO;
 import com.productservice.product.dto.response.OptionResponseDTO;
 import com.productservice.product.dto.response.ProductDetailResponseDTO;
@@ -56,6 +57,15 @@ public class ProductController {
         @PathVariable Long productId) {
         ProductDetailResponseDTO response = productService.getProductDetail(productId);
         return ResponseEntity.ok(ResponseDTO.okWithData(response));
+    }
+
+    @PutMapping("/admin/products/options/{optionId}/max-purchase-limit")
+    public ResponseEntity<Void> updateMaxPurchaseLimit(
+        @PathVariable Long optionId,
+        @Valid @RequestBody UpdateMaxPurchaseLimitRequestDTO request) {
+
+        productService.updateMaxPurchaseLimit(optionId, request.maxPurchaseLimit());
+        return ResponseEntity.ok().build();
     }
 
     //product to order
