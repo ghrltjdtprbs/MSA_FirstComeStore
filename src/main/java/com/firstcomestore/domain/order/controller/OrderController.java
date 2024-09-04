@@ -28,12 +28,14 @@ public class OrderController {
     private final OrderService orderService;
     private final JwtCookieService jwtCookieService;
 
-    @PostMapping("/{wishlistId}")
-    public ResponseEntity<ResponseDTO<Void>> createOrder(@PathVariable Long wishlistId,
-        @Valid @RequestBody OrderRequestDTO orderRequest, HttpServletRequest request) {
+    @PostMapping("/{wishId}")
+    public ResponseEntity<ResponseDTO<Void>> createOrder(
+        @PathVariable Long wishId,
+        @Valid @RequestBody OrderRequestDTO orderRequest, HttpServletRequest request)
+        throws InterruptedException {
+
         Long userId = getUserIdOrThrow(request);
-        orderService.createOrder(userId, wishlistId, orderRequest.deliveryAddress(),
-            orderRequest.deliveryContact());
+        orderService.createOrderFromWish(userId, wishId, orderRequest);
         return ResponseEntity.ok(ResponseDTO.ok());
     }
 

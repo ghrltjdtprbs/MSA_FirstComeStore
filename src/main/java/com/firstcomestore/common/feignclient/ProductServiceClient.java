@@ -20,6 +20,9 @@ public interface ProductServiceClient {
     @GetMapping("/product-service/options/{optionId}/details")
     ResponseEntity<OptionDetailDTO> getOptionDetails(@PathVariable("optionId") Long optionId);
 
+    @GetMapping("/product-service/options/{optionId}/max-purchase-limit")
+    ResponseEntity<Integer> getMaxPurchaseLimit(@PathVariable("optionId") Long optionId);
+
     @PutMapping("/product-service/options/{optionId}/inventory")
     ResponseEntity<Void> updateOptionStock(@PathVariable("optionId") Long optionId,
         @RequestBody int stock);

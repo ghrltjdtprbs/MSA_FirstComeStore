@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -24,6 +25,7 @@ public class WishListService {
     private final WishListRepository wishRepository;
     private final ProductServiceClient productServiceClient;
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void addToWishList(Long userId, Long optionId, AddWishListRequestDTO requestDTO) {
         ResponseEntity<Boolean> response = productServiceClient.checkOptionExists(optionId);
         if (!response.getBody()) {
@@ -50,6 +52,7 @@ public class WishListService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<WishListResponseDTO> getWishList(Long userId) {
         return wishRepository.findByUserId(userId).stream()
             .map(this::toWishListResponseDTO)

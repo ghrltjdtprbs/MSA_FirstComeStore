@@ -2,9 +2,12 @@ package com.firstcomestore.domain.order.service;
 
 import com.firstcomestore.common.exception.ErrorCode;
 import com.firstcomestore.common.feignclient.ProductServiceClient;
+import com.firstcomestore.domain.order.dto.request.OrderRequestDTO;
 import com.firstcomestore.domain.order.entity.Order;
 import com.firstcomestore.domain.order.entity.OrderStatus;
+import com.firstcomestore.domain.order.exception.ExceedMaxPurchaseLimitException;
 import com.firstcomestore.domain.order.exception.InsufficientStockException;
+import com.firstcomestore.domain.order.exception.LockAcquisitionFailureException;
 import com.firstcomestore.domain.order.exception.OrderNotFoundException;
 import com.firstcomestore.domain.order.exception.StatusChangeException;
 import com.firstcomestore.domain.order.repository.OrderRepository;
@@ -14,9 +17,12 @@ import com.firstcomestore.domain.wishlist.repository.WishListRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -27,34 +33,54 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final WishListRepository wishListRepository;
     private final ProductServiceClient productServiceClient;
+    private final RedissonClient redissonClient;
 
-    public Order createOrder(Long userId, Long wishlistId, String deliveryAddress,
-        String deliveryContact) {
-        WishList wish = getWishList(userId, wishlistId);
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void createOrderFromWish(Long userId, Long wishId, OrderRequestDTO orderRequest)
+        throws InterruptedException {
+        WishList wish = wishListRepository.findByIdAndUserId(wishId, userId)
+            .orElseThrow(() -> new WishNotFoundException());
 
-        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
-            wish.getOptionId());
-        int availableStock = stockResponse.getBody();
-        if (availableStock < wish.getQuantity()) {
-            throw new InsufficientStockException();
+        Long optionId = wish.getOptionId();
+        int purchaseQuantity = wish.getQuantity();
+
+        RLock lock = redissonClient.getLock("order-lock:" + optionId);
+
+        try {
+            if (lock.tryLock(10, 5, TimeUnit.SECONDS)) {
+
+                Integer maxPurchaseLimit = productServiceClient.getMaxPurchaseLimit(optionId)
+                    .getBody();
+                if (maxPurchaseLimit != null && purchaseQuantity > maxPurchaseLimit) {
+                    throw new ExceedMaxPurchaseLimitException();
+                }
+
+                int availableStock = productServiceClient.getOptionStock(optionId).getBody();
+                if (availableStock < purchaseQuantity) {
+                    throw new InsufficientStockException();
+                }
+
+                productServiceClient.updateOptionStock(optionId, -purchaseQuantity);
+
+                Order order = Order.builder()
+                    .userId(userId)
+                    .optionId(optionId)
+                    .quantity(purchaseQuantity)
+                    .orderStatus(OrderStatus.ORDER_COMPLETE)
+                    .deliveryAddress(orderRequest.deliveryAddress())
+                    .deliveryContact(orderRequest.deliveryContact())
+                    .build();
+
+                orderRepository.save(order);
+
+            } else {
+                throw new LockAcquisitionFailureException();
+            }
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-
-        productServiceClient.updateOptionStock(wish.getOptionId(), -wish.getQuantity());
-
-        Order order = Order.builder()
-            .userId(userId)
-            .optionId(wish.getOptionId())
-            .deliveryAddress(deliveryAddress)
-            .deliveryContact(deliveryContact)
-            .quantity(wish.getQuantity())
-            .orderStatus(OrderStatus.ORDER_COMPLETE)
-            .build();
-
-        orderRepository.save(order);
-
-        wishListRepository.delete(wish);
-
-        return order;
     }
 
     public void cancelOrder(Long orderId) {
@@ -91,11 +117,6 @@ public class OrderService {
         }
     }
 
-    private WishList getWishList(Long userId, Long wishlistId) {
-        return wishListRepository.findByIdAndUserId(wishlistId, userId)
-            .orElseThrow(() -> new WishNotFoundException());
-    }
-
     private Order getOrder(Long orderId) {
         return orderRepository.findById(orderId)
             .orElseThrow(() -> new OrderNotFoundException());
@@ -107,6 +128,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getOrders(Long userId) {
         return orderRepository.findByUserId(userId);
     }
