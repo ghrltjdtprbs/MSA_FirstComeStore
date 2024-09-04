@@ -24,7 +24,7 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/product-service/**
-            - Method=GET,POST
+            - Method=GET,POST,PUT
           filters:
             - RewritePath=/product-service/(?<segment>.*), /$\{segment}
 
