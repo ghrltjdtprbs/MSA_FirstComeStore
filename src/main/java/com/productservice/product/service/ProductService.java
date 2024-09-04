@@ -104,6 +104,7 @@ public class ProductService {
         return inventoryRepository.save(inventory);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductListResponseDTO> getProductList() {
         return productRepository.findAll().stream()
             .map(product -> ProductListResponseDTO.builder()
@@ -115,6 +116,7 @@ public class ProductService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ProductDetailResponseDTO getProductDetail(Long productId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException());
@@ -153,13 +155,6 @@ public class ProductService {
         optionRepository.save(option);
     }
 
-    public Integer getMaxPurchaseLimit(Long optionId) {
-        Option option = optionRepository.findById(optionId)
-            .orElseThrow(() -> new OptionNotFoundException());
-
-        return option.getMaxPurchaseLimit();
-    }
-
     // product to order
     public void updateStock(Long optionId, int additionalStock) {
         Option option = optionRepository.findById(optionId)
@@ -170,5 +165,13 @@ public class ProductService {
         int newStock = currentStock + additionalStock;
 
         inventory.setStock(newStock);
+    }
+
+    @Transactional(readOnly = true)
+    public Integer getMaxPurchaseLimit(Long optionId) {
+        Option option = optionRepository.findById(optionId)
+            .orElseThrow(() -> new OptionNotFoundException());
+
+        return option.getMaxPurchaseLimit();
     }
 }
