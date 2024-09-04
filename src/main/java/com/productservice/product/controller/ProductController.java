@@ -107,4 +107,10 @@ public class ProductController {
         productService.updateStock(optionId, stock);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/product-service/options/{optionId}/max-purchase-limit")
+    public ResponseEntity<Integer> getMaxPurchaseLimit(@PathVariable Long optionId) {
+        Integer maxPurchaseLimit = productService.getMaxPurchaseLimit(optionId);
+        return ResponseEntity.ok(maxPurchaseLimit);
+    }
 }
