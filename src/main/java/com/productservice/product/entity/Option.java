@@ -37,6 +37,10 @@ public class Option extends SoftDeletableBaseTimeEntity {
     @Setter
     private boolean availability;
 
+    @Column(name = "max_purchase_limit")
+    @Setter
+    private Integer maxPurchaseLimit;
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
