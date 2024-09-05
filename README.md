@@ -11,6 +11,10 @@ Spring Boot, Spring WebFlux, Spring Cloud, Java, JPA, Java Mail Sender
 - **Database** : MySQL, Redis
 - **Monitoring** : Spring Actuator, Grafana, Prometheus
 ----
+# 🖼️ Architecture
+<img width="748" alt="스크린샷 2024-09-05 19 41 51" src="https://github.com/user-attachments/assets/9a575eff-d9a5-449f-b38f-a5b848da6715">
+
+----
 # 🪵 branch
 - **main** : 모놀리식 프로젝트
 - **api-gateway** : api gateway service
