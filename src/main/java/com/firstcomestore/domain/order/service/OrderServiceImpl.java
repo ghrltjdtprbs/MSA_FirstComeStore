@@ -51,12 +51,13 @@ public class OrderServiceImpl implements OrderService {
             if (lock.tryLock(10, 5, TimeUnit.SECONDS)) {
 
                 Integer maxPurchaseLimit = productServiceClient.getMaxPurchaseLimit(optionId)
-                    .getBody();
+                    .getBody().getData();
                 if (maxPurchaseLimit != null && purchaseQuantity > maxPurchaseLimit) {
                     throw new ExceedMaxPurchaseLimitException();
                 }
 
-                int availableStock = productServiceClient.getOptionStock(optionId).getBody();
+                int availableStock = productServiceClient.getOptionStock(optionId)
+                    .getBody().getData();
                 if (availableStock < purchaseQuantity) {
                     throw new InsufficientStockException();
                 }

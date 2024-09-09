@@ -1,5 +1,6 @@
 package com.firstcomestore.domain.wishlist.service;
 
+import com.firstcomestore.common.dto.ResponseDTO;
 import com.firstcomestore.common.feignclient.ProductServiceClient;
 import com.firstcomestore.domain.order.exception.InsufficientStockException;
 import com.firstcomestore.domain.wishlist.dto.request.AddWishListRequestDTO;
@@ -14,7 +15,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -25,16 +25,17 @@ public class WishListServiceImpl implements WishListService {
     private final WishListRepository wishRepository;
     private final ProductServiceClient productServiceClient;
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void addToWishList(Long userId, Long optionId, AddWishListRequestDTO requestDTO) {
-        ResponseEntity<Boolean> response = productServiceClient.checkOptionExists(optionId);
-        if (!response.getBody()) {
+        ResponseEntity<ResponseDTO<Boolean>> response = productServiceClient.checkOptionExists(
+            optionId);
+        if (!response.getBody().getData()) {
             throw new OptionNotFoundException();
         }
 
-        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(optionId);
-        int availableStock = stockResponse.getBody();
+        ResponseEntity<ResponseDTO<Integer>> stockResponse = productServiceClient.getOptionStock(
+            optionId);
+        int availableStock = stockResponse.getBody().getData();
         if (availableStock < requestDTO.quantity()) {
             throw new InsufficientStockException();
         }
@@ -62,9 +63,9 @@ public class WishListServiceImpl implements WishListService {
     }
 
     private WishListResponseDTO toWishListResponseDTO(WishList wish) {
-        ResponseEntity<OptionDetailDTO> response = productServiceClient.getOptionDetails(
+        ResponseEntity<ResponseDTO<OptionDetailDTO>> response = productServiceClient.getOptionDetails(
             wish.getOptionId());
-        OptionDetailDTO optionDetails = response.getBody();
+        OptionDetailDTO optionDetails = response.getBody().getData();
 
         return WishListResponseDTO.builder()
             .id(wish.getId())
@@ -91,9 +92,9 @@ public class WishListServiceImpl implements WishListService {
         WishList wish = wishRepository.findByIdAndUserId(wishId, userId)
             .orElseThrow(() -> new WishNotFoundException());
 
-        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
+        ResponseEntity<ResponseDTO<Integer>> stockResponse = productServiceClient.getOptionStock(
             wish.getOptionId());
-        int availableStock = stockResponse.getBody();
+        int availableStock = stockResponse.getBody().getData();
         if (availableStock < requestDTO.quantity()) {
             throw new InsufficientStockException();
         }
