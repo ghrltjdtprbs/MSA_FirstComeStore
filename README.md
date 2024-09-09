@@ -62,6 +62,7 @@ Spring Boot, Spring WebFlux, Spring Cloud, Java, JPA, Java Mail Sender
 - 자세한 API 정보 및 테스트 케이스는 [API 문서](https://sapphire-behavior-785.notion.site/FirstComeStore-API-3f6b06ad702848e49937178909f3a885) 참고
 - product-service와 FeignClient를 통해 통신
 - Redis 분산락을 사용해 선착순 주문 동시성 제어 처리(Jmeter로 테스트 완료 [상세보기](https://velog.io/@ghrltjdtprbs/%EC%84%A0%EC%B0%A9%EC%88%9C-%EA%B5%AC%EB%A7%A4-%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%A0%9C%EC%96%B4-%ED%85%8C%EC%8A%A4%ED%8A%B8))
+- Resilience4j를 활용하여 서킷 브레이커 구현(order-service <-> product-service)
 ### API
 - (위시리스트 추가) POST /order-service/wishlist/options/{optionId}
 - (위시리스트 조회) GET /order-service/wishlist
