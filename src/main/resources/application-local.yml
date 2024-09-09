@@ -37,5 +37,16 @@ eureka:
 redisson:
   config: |
     singleServerConfig:
-      address: "redis://localhost:6379"  
-     
+      address: "redis://localhost:6379" 
+
+# Circuitbreaker 설정
+resilience4j:
+  circuitbreaker:
+    instances:
+      productServiceClient:
+        slidingWindowSize: 10
+        failureRateThreshold: 40
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 10
+        eventConsumerBufferSize: 10
