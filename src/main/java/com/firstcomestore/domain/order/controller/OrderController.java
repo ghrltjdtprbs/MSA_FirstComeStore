@@ -35,7 +35,7 @@ public class OrderController {
         throws InterruptedException {
 
         Long userId = getUserIdOrThrow(request);
-        orderService.createOrderFromWish(userId, wishId, orderRequest);
+        orderService.createOrder(userId, wishId, orderRequest);
         return ResponseEntity.ok(ResponseDTO.ok());
     }
 
