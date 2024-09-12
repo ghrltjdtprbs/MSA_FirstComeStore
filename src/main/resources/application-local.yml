@@ -50,3 +50,9 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 3
         minimumNumberOfCalls: 10
         eventConsumerBufferSize: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, circuitbreakers
