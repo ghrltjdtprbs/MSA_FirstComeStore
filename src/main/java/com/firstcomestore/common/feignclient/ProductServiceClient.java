@@ -20,20 +20,20 @@ public interface ProductServiceClient {
 
     @CircuitBreaker(name = "productServiceClient", fallbackMethod = "checkOptionExistsFallback")
     @GetMapping("/product-service/options/{optionId}/exists")
-    ResponseEntity<ResponseDTO<Boolean>> checkOptionExists(@PathVariable("optionId") Long optionId);
+    ResponseEntity<Boolean> checkOptionExists(@PathVariable("optionId") Long optionId);
 
     @CircuitBreaker(name = "productServiceClient", fallbackMethod = "getOptionStockFallback")
     @GetMapping("/product-service/options/{optionId}/inventory")
-    ResponseEntity<ResponseDTO<Integer>> getOptionStock(@PathVariable("optionId") Long optionId);
+    ResponseEntity<Integer> getOptionStock(@PathVariable("optionId") Long optionId);
 
     @CircuitBreaker(name = "productServiceClient", fallbackMethod = "getOptionDetailsFallback")
     @GetMapping("/product-service/options/{optionId}/details")
-    ResponseEntity<ResponseDTO<OptionDetailDTO>> getOptionDetails(
+    ResponseEntity<OptionDetailDTO> getOptionDetails(
         @PathVariable("optionId") Long optionId);
 
     @CircuitBreaker(name = "productServiceClient", fallbackMethod = "getMaxPurchaseLimitFallback")
     @GetMapping("/product-service/options/{optionId}/max-purchase-limit")
-    ResponseEntity<ResponseDTO<Integer>> getMaxPurchaseLimit(
+    ResponseEntity<Integer> getMaxPurchaseLimit(
         @PathVariable("optionId") Long optionId);
 
     @CircuitBreaker(name = "productServiceClient", fallbackMethod = "updateOptionStockFallback")
@@ -42,19 +42,19 @@ public interface ProductServiceClient {
         @RequestBody int stock);
 
     // Fallback Methods
-    default ResponseEntity<ResponseDTO<Boolean>> checkOptionExistsFallback(Long optionId,
+    default ResponseEntity<Boolean> checkOptionExistsFallback(Long optionId,
         Throwable throwable) {
         logError(throwable);
-        return ResponseEntity.ok(ResponseDTO.okWithData(false));
+        return ResponseEntity.ok(false);
     }
 
-    default ResponseEntity<ResponseDTO<Integer>> getOptionStockFallback(Long optionId,
+    default ResponseEntity<Integer> getOptionStockFallback(Long optionId,
         Throwable throwable) {
         logError(throwable);
-        return ResponseEntity.ok(ResponseDTO.okWithData(0));
+        return ResponseEntity.ok(0);
     }
 
-    default ResponseEntity<ResponseDTO<OptionDetailDTO>> getOptionDetailsFallback(Long optionId,
+    default ResponseEntity<OptionDetailDTO> getOptionDetailsFallback(Long optionId,
         Throwable throwable) {
         logError(throwable);
         OptionDetailDTO fallbackOption = OptionDetailDTO.builder()
@@ -65,19 +65,19 @@ public interface ProductServiceClient {
             .productId(-1L)
             .productName("Unknown Product")
             .build();
-        return ResponseEntity.ok(ResponseDTO.okWithData(fallbackOption));
+        return ResponseEntity.ok(fallbackOption);
     }
 
-    default ResponseEntity<ResponseDTO<Integer>> getMaxPurchaseLimitFallback(Long optionId,
+    default ResponseEntity<Integer> getMaxPurchaseLimitFallback(Long optionId,
         Throwable throwable) {
         logError(throwable);
-        return ResponseEntity.ok(ResponseDTO.okWithData(1));
+        return ResponseEntity.ok(1);
     }
 
-    default ResponseEntity<ResponseDTO<Void>> updateOptionStockFallback(Long optionId, int stock,
+    default ResponseEntity<Void> updateOptionStockFallback(Long optionId, int stock,
         Throwable throwable) {
         logError(throwable);
-        return ResponseEntity.ok(ResponseDTO.ok());
+        return ResponseEntity.ok().build();
     }
 
     private void logError(Throwable throwable) {

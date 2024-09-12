@@ -27,15 +27,15 @@ public class WishListServiceImpl implements WishListService {
 
     @Override
     public void addToWishList(Long userId, Long optionId, AddWishListRequestDTO requestDTO) {
-        ResponseEntity<ResponseDTO<Boolean>> response = productServiceClient.checkOptionExists(
+        ResponseEntity<Boolean> response = productServiceClient.checkOptionExists(
             optionId);
-        if (!response.getBody().getData()) {
+        if (!response.getBody()) {
             throw new OptionNotFoundException();
         }
 
-        ResponseEntity<ResponseDTO<Integer>> stockResponse = productServiceClient.getOptionStock(
+        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
             optionId);
-        int availableStock = stockResponse.getBody().getData();
+        int availableStock = stockResponse.getBody();
         if (availableStock < requestDTO.quantity()) {
             throw new InsufficientStockException();
         }
@@ -63,9 +63,9 @@ public class WishListServiceImpl implements WishListService {
     }
 
     private WishListResponseDTO toWishListResponseDTO(WishList wish) {
-        ResponseEntity<ResponseDTO<OptionDetailDTO>> response = productServiceClient.getOptionDetails(
+        ResponseEntity<OptionDetailDTO> response = productServiceClient.getOptionDetails(
             wish.getOptionId());
-        OptionDetailDTO optionDetails = response.getBody().getData();
+        OptionDetailDTO optionDetails = response.getBody();
 
         return WishListResponseDTO.builder()
             .id(wish.getId())
@@ -92,9 +92,9 @@ public class WishListServiceImpl implements WishListService {
         WishList wish = wishRepository.findByIdAndUserId(wishId, userId)
             .orElseThrow(() -> new WishNotFoundException());
 
-        ResponseEntity<ResponseDTO<Integer>> stockResponse = productServiceClient.getOptionStock(
+        ResponseEntity<Integer> stockResponse = productServiceClient.getOptionStock(
             wish.getOptionId());
-        int availableStock = stockResponse.getBody().getData();
+        int availableStock = stockResponse.getBody();
         if (availableStock < requestDTO.quantity()) {
             throw new InsufficientStockException();
         }
