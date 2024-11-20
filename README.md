@@ -6,7 +6,7 @@
 # 🛠️ Tech Stack
 - **Framework & Library** : 
 Spring Boot, Spring WebFlux, Spring Cloud, Java, JPA, Java Mail Sender
-- **DevOps** : AWS, EC2, Docker, Netflix Eureka, env(로컬환경 변수 관리), GitHub Secrets
+- **DevOps** : AWS, ECS, ALB, EC2, Fargate, Docker, Netflix Eureka, env(로컬환경 변수 관리), GitHub Secrets
 - **Security** : JWT, Spring Security
 - **Database** : MySQL, Redis
 - **Monitoring** : Spring Actuator, Grafana, Prometheus
